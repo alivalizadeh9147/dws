@@ -34,6 +34,7 @@ class DebitMoneyUseCaseTest {
 
     private DebitMoneyUseCase useCase;
 
+    UUID uuid = UUID.randomUUID();
     @BeforeEach
     void setUp() {
         useCase = new DebitMoneyUseCase(repository, eventPublisher);
@@ -41,26 +42,24 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldDebitMoneyFromWallet() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("500"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
         UseCaseResult<Void> result = useCase.execute(request);
 
-        verify(repository).findForUpdate(
-                new WalletId(walletId)
+        verify(repository).findForUpdateByUserId(
+                uuid
         );
 
         verify(repository).updateBalance(
@@ -76,14 +75,12 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenWalletDoesNotExist() {
-        UUID walletId = UUID.randomUUID();
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.empty());
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -92,8 +89,8 @@ class DebitMoneyUseCaseTest {
                 () -> useCase.execute(request)
         );
 
-        verify(repository).findForUpdate(
-                new WalletId(walletId)
+        verify(repository).findForUpdateByUserId(
+                uuid
         );
 
         verify(repository, never()).updateBalance(any());
@@ -101,20 +98,18 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenBalanceIsInsufficient() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
 
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("101")
                 );
 
@@ -123,8 +118,8 @@ class DebitMoneyUseCaseTest {
                 () -> useCase.execute(request)
         );
 
-        verify(repository).findForUpdate(
-                new WalletId(walletId)
+        verify(repository).findForUpdateByUserId(
+                uuid
         );
 
         verify(repository, never()).updateBalance(any());
@@ -132,20 +127,18 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldDebitEntireBalance() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
 
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -160,16 +153,14 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenAmountIsZero() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(wallet));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         BigDecimal.ZERO
                 );
 
@@ -183,16 +174,14 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenAmountIsNegative() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(wallet));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("-100")
                 );
 
@@ -206,20 +195,18 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldReturnDebitDomainEvent() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
 
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("500"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -237,20 +224,18 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldUpdateRepositoryWithWithdrawnWallet() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
 
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("500"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("150")
                 );
 
@@ -267,20 +252,18 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldFindWalletForUpdateBeforeUpdatingBalance() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
 
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("500"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -289,7 +272,7 @@ class DebitMoneyUseCaseTest {
         var inOrder = inOrder(repository);
 
         inOrder.verify(repository)
-                .findForUpdate(new WalletId(walletId));
+                .findForUpdateByUserId(uuid);
 
         inOrder.verify(repository)
                 .updateBalance(any(Wallet.class));
@@ -297,20 +280,18 @@ class DebitMoneyUseCaseTest {
 
     @Test
     void shouldNotUpdateRepositoryWhenDebitFails() {
-        UUID walletId = UUID.randomUUID();
-
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(uuid);
 
         Wallet credited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
         );
 
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(java.util.Optional.of(credited));
 
         DebitMoneyRequest request =
                 new DebitMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("200")
                 );
 

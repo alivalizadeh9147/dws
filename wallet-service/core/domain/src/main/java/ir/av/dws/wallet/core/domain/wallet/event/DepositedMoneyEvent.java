@@ -14,7 +14,7 @@ public record DepositedMoneyEvent(UUID eventId,
     }
 
     public record Payload(UUID walletId,
-                          String walletName,
+                          UUID userId,
                           String amount) {
 
     }

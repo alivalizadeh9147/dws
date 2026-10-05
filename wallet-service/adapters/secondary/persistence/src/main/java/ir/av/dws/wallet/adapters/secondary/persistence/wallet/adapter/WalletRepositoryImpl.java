@@ -31,18 +31,24 @@ public class WalletRepositoryImpl implements WalletRepository {
     }
 
     @Override
+    public Optional<Wallet> findByUserId(UUID userId) {
+        return jpaRepository.findByUserId(userId).map(mapper::map);
+    }
+
+    @Override
+    public Optional<Wallet> findForUpdateByUserId(UUID userId) {
+        return jpaRepository.findForUpdateByUserId(userId).map(mapper::map);
+    }
+
+    @Override
     public Optional<Wallet> findForUpdate(WalletId id) {
         return jpaRepository.findByIdForUpdate(id.value()).map(mapper::map);
     }
 
     @Override
-    public List<Wallet> findAllForUpdate(Collection<WalletId> ids) {
-        List<UUID> walletsId = ids.stream()
-                .map(WalletId::value)
-                .toList();
-
+    public List<Wallet> findAllForUpdate(Collection<UUID> userIds) {
         return jpaRepository
-                .findAllByIdForUpdate(walletsId)
+                .findAllByUserIdForUpdate(userIds)
                 .stream()
                 .map(mapper::map)
                 .toList();

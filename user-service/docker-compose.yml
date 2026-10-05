@@ -1,0 +1,25 @@
+services:
+
+  app:
+    build:
+      dockerfile: Dockerfile
+
+    container_name: user-app
+    restart: unless-stopped
+
+    ports:
+      - "8083:8083"
+
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+
+      DDL_AUTO: update
+
+    networks:
+      - shared-network
+
+
+networks:
+  shared-network:
+    external: true

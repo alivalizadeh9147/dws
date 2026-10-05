@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Table(name = "WALLET")
 @Entity
@@ -20,5 +21,5 @@ public class WalletJpaEntity extends JpaBaseEntity {
             scale = 4)
     private BigDecimal balance;
 
-    private String name;
+    private UUID userId;
 }

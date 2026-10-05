@@ -3,9 +3,9 @@ package ir.av.dws;
 import ir.av.dws.wallet.adapters.secondary.persistence.wallet.repository.WalletJpaRepository;
 import ir.av.dws.wallet.container.WalletSpringBootApplication;
 import ir.av.dws.wallet.core.application.ports.outbound.repository.wallet.WalletRepository;
+import ir.av.dws.wallet.core.domain.shared.vo.Money;
 import ir.av.dws.wallet.core.domain.wallet.entity.Wallet;
 import ir.av.dws.wallet.core.domain.wallet.vo.WalletId;
-import ir.av.dws.wallet.core.domain.shared.vo.Money;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.assertj.core.api.Assertions;
@@ -69,6 +69,8 @@ public class WalletRepositoryIT {
     @Autowired
     private EntityManager entityManager;
 
+    UUID userId = UUID.randomUUID();
+
     @BeforeEach
     void setUp() {
         jpaRepository.deleteAll();
@@ -77,7 +79,8 @@ public class WalletRepositoryIT {
     @Test
     public void should_save_and_find_wallet() {
 
-        Wallet wallet = Wallet.open("Test Wallet");
+
+        Wallet wallet = Wallet.open(userId);
 
         repository.save(wallet);
 
@@ -92,8 +95,8 @@ public class WalletRepositoryIT {
         Assertions.assertThat(found.getId())
                 .isEqualTo(wallet.getId());
 
-        Assertions.assertThat(found.name())
-                .isEqualTo("Test Wallet");
+        Assertions.assertThat(found.userId())
+                .isEqualTo(userId);
 
         Assertions.assertThat(found.balance())
                 .isEqualTo(Money.zero());
@@ -104,7 +107,7 @@ public class WalletRepositoryIT {
     public void should_find_wallet_for_update() {
 
         Wallet wallet =
-                Wallet.open("Test Wallet")
+                Wallet.open(userId)
                         .deposit(
                                 Money.of(BigDecimal.valueOf(1000))
                         );
@@ -139,7 +142,7 @@ public class WalletRepositoryIT {
     @Test
     @Transactional
     public void should_update_balance_multiple_times() {
-        Wallet wallet = Wallet.open("A");
+        Wallet wallet = Wallet.open(userId);
 
         repository.save(wallet);
 
@@ -168,7 +171,7 @@ public class WalletRepositoryIT {
     @Transactional
     void should_update_wallet_balance() {
 
-        Wallet wallet = Wallet.open("A");
+        Wallet wallet = Wallet.open(userId);
 
         repository.save(wallet);
 

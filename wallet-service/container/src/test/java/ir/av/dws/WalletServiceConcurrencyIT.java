@@ -72,6 +72,8 @@ class WalletServiceConcurrencyIT {
     @Autowired
     private WalletService walletService;
 
+    private UUID userId = UUID.randomUUID();
+
 
     // ---------------------------------------------------------
     // Concurrent Credit
@@ -82,7 +84,7 @@ class WalletServiceConcurrencyIT {
             throws Exception {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         int threadCount = 100;
         long amount = 100;
@@ -139,7 +141,7 @@ class WalletServiceConcurrencyIT {
             throws Exception {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         int threadCount = 100;
         long amount = 100;
@@ -202,7 +204,7 @@ class WalletServiceConcurrencyIT {
             throws Exception {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         int creditThreads = 50;
         int debitThreads = 50;
@@ -281,15 +283,17 @@ class WalletServiceConcurrencyIT {
     // Concurrent Transfer A -> B
     // ---------------------------------------------------------
 
+    private UUID sourceUserId = UUID.randomUUID();
+    private UUID destinationUserId = UUID.randomUUID();
     @Test
     void should_handle_concurrent_transfers_in_same_direction()
             throws Exception {
 
         UUID source =
-                walletService.openWallet("SOURCE");
+                walletService.openWallet(sourceUserId);
 
         UUID destination =
-                walletService.openWallet("DESTINATION");
+                walletService.openWallet(destinationUserId);
 
         int threadCount = 100;
         long amount = 100;
@@ -359,10 +363,10 @@ class WalletServiceConcurrencyIT {
             throws Exception {
 
         UUID walletA =
-                walletService.openWallet("A");
+                walletService.openWallet(sourceUserId);
 
         UUID walletB =
-                walletService.openWallet("B");
+                walletService.openWallet(destinationUserId);
 
         int transferCount = 100;
         long amount = 100;
@@ -457,7 +461,7 @@ class WalletServiceConcurrencyIT {
             throws Exception {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         String idempotencyKey =
                 UUID.randomUUID().toString();
@@ -522,7 +526,7 @@ class WalletServiceConcurrencyIT {
             throws Exception {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         walletService.credit(
                 walletId,

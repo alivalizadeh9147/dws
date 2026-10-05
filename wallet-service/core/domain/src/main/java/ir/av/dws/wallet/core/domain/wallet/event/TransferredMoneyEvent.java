@@ -14,9 +14,9 @@ public record TransferredMoneyEvent(UUID eventId,
     }
 
     public record Payload(UUID sourceWalletId,
-                          String sourceWalletName,
+                          UUID sourceUserId,
                           UUID destinationWalletId,
-                          String destinationWalletName,
+                          UUID destinationUserId,
                           String amount) {
 
     }

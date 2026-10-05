@@ -4,10 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Schema
 @Setter
 @Getter
 public class OpenWalletRestRequest {
 
-    private String name;
+    private UUID userId;
 }

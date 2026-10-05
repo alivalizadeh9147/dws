@@ -5,5 +5,5 @@ import ir.av.dws.wallet.core.application.ports.inbound.base.BaseRequest;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record DebitMoneyRequest(UUID walletId, BigDecimal amount) implements BaseRequest {
+public record DebitMoneyRequest(UUID userId, BigDecimal amount) implements BaseRequest {
 }

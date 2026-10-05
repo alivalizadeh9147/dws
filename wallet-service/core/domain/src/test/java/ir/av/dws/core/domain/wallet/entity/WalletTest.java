@@ -12,25 +12,28 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class WalletTest {
 
+    private UUID userId = UUID.randomUUID();
+
     @Test
     void shouldOpenWalletWithZeroBalance() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         assertNotNull(wallet.getId());
-        assertEquals("Ali", wallet.name());
+        assertEquals(userId, wallet.userId());
         assertEquals(Money.zero(), wallet.balance());
     }
 
     @Test
     void shouldGenerateWalletOpenedEventWhenWalletIsOpened() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         List<DomainEvent<?>> events =
                 wallet.pullDomainEvents();
@@ -46,7 +49,7 @@ class WalletTest {
     @Test
     void shouldDepositMoney() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
@@ -66,7 +69,7 @@ class WalletTest {
     @Test
     void shouldGenerateDepositedMoneyEvent() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
@@ -86,7 +89,7 @@ class WalletTest {
     @Test
     void shouldNotAllowZeroDeposit() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         assertThrows(
                 InvalidWalletOperationException.class,
@@ -97,7 +100,7 @@ class WalletTest {
     @Test
     void shouldNotAllowNullDeposit() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         assertThrows(
                 NullPointerException.class,
@@ -108,7 +111,7 @@ class WalletTest {
     @Test
     void shouldDebitMoney() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
@@ -132,7 +135,7 @@ class WalletTest {
     @Test
     void shouldNotDebitMoreThanBalance() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
@@ -149,7 +152,7 @@ class WalletTest {
     @Test
     void shouldKeepBalanceUnchangedWhenDebitFails() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
@@ -171,7 +174,7 @@ class WalletTest {
     @Test
     void shouldDebitEntireBalance() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))
@@ -190,7 +193,7 @@ class WalletTest {
     @Test
     void shouldNotAllowZeroDebit() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         assertThrows(
                 InvalidWalletOperationException.class,
@@ -201,7 +204,7 @@ class WalletTest {
     @Test
     void shouldGenerateDebitMoneyEvent() {
 
-        Wallet wallet = Wallet.open("Ali");
+        Wallet wallet = Wallet.open(userId);
 
         Wallet deposited = wallet.deposit(
                 Money.of(new BigDecimal("100"))

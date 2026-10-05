@@ -40,15 +40,19 @@ class TransferMoneyUseCaseTest {
     @InjectMocks
     private TransferMoneyUseCase useCase;
 
+    UUID userId = UUID.randomUUID();
+    UUID sourceUserId = UUID.randomUUID();
+    UUID destinationUserId = UUID.randomUUID();
+
     @Test
     void should_transfer_money_successfully() {
-        Wallet source = Wallet.open("Source")
+        Wallet source = Wallet.open(sourceUserId)
                 .deposit(Money.of(BigDecimal.valueOf(500)));
 
-        Wallet destination = Wallet.open("Destination");
+        Wallet destination = Wallet.open(destinationUserId);
 
-        UUID sourceId = source.getId().value();
-        UUID destinationId = destination.getId().value();
+        UUID sourceId = source.userId();
+        UUID destinationId = destination.userId();
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
@@ -73,12 +77,12 @@ class TransferMoneyUseCaseTest {
         List<Wallet> updatedWallets = walletCaptor.getAllValues();
 
         Wallet updatedSource = updatedWallets.stream()
-                .filter(wallet -> wallet.getId().value().equals(sourceId))
+                .filter(wallet -> wallet.userId().equals(sourceId))
                 .findFirst()
                 .orElseThrow();
 
         Wallet updatedDestination = updatedWallets.stream()
-                .filter(wallet -> wallet.getId().value().equals(destinationId))
+                .filter(wallet -> wallet.userId().equals(destinationId))
                 .findFirst()
                 .orElseThrow();
 
@@ -91,7 +95,7 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_reject_transfer_between_same_wallet() {
-        Wallet wallet = Wallet.open("Wallet");
+        Wallet wallet = Wallet.open(userId);
 
         UUID walletId = wallet.getId().value();
 
@@ -132,9 +136,9 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_throw_when_destination_wallet_not_found() {
-        Wallet source = Wallet.open("Source");
+        Wallet source = Wallet.open(sourceUserId);
 
-        UUID sourceId = source.getId().value();
+        UUID sourceId = source.userId();
         UUID destinationId = UUID.randomUUID();
 
         when(repository.findAllForUpdate(anyList()))
@@ -156,11 +160,11 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_throw_when_source_has_insufficient_balance() {
-        Wallet source = Wallet.open("Source");
-        Wallet destination = Wallet.open("Destination");
+        Wallet source = Wallet.open(sourceUserId);
+        Wallet destination = Wallet.open(destinationUserId);
 
-        UUID sourceId = source.getId().value();
-        UUID destinationId = destination.getId().value();
+        UUID sourceId = source.userId();
+        UUID destinationId = destination.userId();
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
@@ -180,11 +184,11 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_lock_wallets_in_deterministic_order() {
-        Wallet source = Wallet.open("Source");
-        Wallet destination = Wallet.open("Destination");
+        Wallet source = Wallet.open(sourceUserId);
+        Wallet destination = Wallet.open(destinationUserId);
 
-        UUID sourceId = source.getId().value();
-        UUID destinationId = destination.getId().value();
+        UUID sourceId = source.userId();
+        UUID destinationId = destination.userId();
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
@@ -198,12 +202,12 @@ class TransferMoneyUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(request))
                 .isInstanceOf(InsufficientBalanceException.class);
 
-        ArgumentCaptor<List<WalletId>> captor =
+        ArgumentCaptor<List<UUID>> captor =
                 ArgumentCaptor.forClass(List.class);
 
         verify(repository).findAllForUpdate(captor.capture());
 
-        List<WalletId> lockedIds = captor.getValue();
+        List<UUID> lockedIds = captor.getValue();
 
         assertThat(lockedIds)
                 .containsExactly(
@@ -211,23 +215,23 @@ class TransferMoneyUseCaseTest {
                         lockedIds.get(1)
                 );
 
-        assertThat(lockedIds.get(0).value())
-                .isLessThan(lockedIds.get(1).value());
+        assertThat(lockedIds.get(0))
+                .isLessThan(lockedIds.get(1));
     }
 
     @Test
     void should_update_both_wallets_exactly_once() {
-        Wallet source = Wallet.open("Source")
+        Wallet source = Wallet.open(sourceUserId)
                 .deposit(Money.of(BigDecimal.valueOf(1000)));
 
-        Wallet destination = Wallet.open("Destination");
+        Wallet destination = Wallet.open(destinationUserId);
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
 
         TransferMoneyRequest request = new TransferMoneyRequest(
-                source.getId().value(),
-                destination.getId().value(),
+                source.userId(),
+                destination.userId(),
                 BigDecimal.valueOf(250)
         );
 
@@ -239,17 +243,17 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_return_two_domain_events_after_successful_transfer() {
-        Wallet source = Wallet.open("Source")
+        Wallet source = Wallet.open(sourceUserId)
                 .deposit(Money.of(BigDecimal.valueOf(500)));
 
-        Wallet destination = Wallet.open("Destination");
+        Wallet destination = Wallet.open(destinationUserId);
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
 
         TransferMoneyRequest request = new TransferMoneyRequest(
-                source.getId().value(),
-                destination.getId().value(),
+                source.userId(),
+                destination.userId(),
                 BigDecimal.valueOf(100)
         );
 
@@ -264,15 +268,15 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_not_update_any_wallet_when_debit_fails() {
-        Wallet source = Wallet.open("Source");
-        Wallet destination = Wallet.open("Destination");
+        Wallet source = Wallet.open(sourceUserId);
+        Wallet destination = Wallet.open(destinationUserId);
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
 
         TransferMoneyRequest request = new TransferMoneyRequest(
-                source.getId().value(),
-                destination.getId().value(),
+                source.userId(),
+                destination.userId(),
                 BigDecimal.valueOf(100)
         );
 
@@ -285,17 +289,17 @@ class TransferMoneyUseCaseTest {
 
     @Test
     void should_find_all_wallets_for_update_before_modifying_them() {
-        Wallet source = Wallet.open("Source")
+        Wallet source = Wallet.open(sourceUserId)
                 .deposit(Money.of(BigDecimal.valueOf(500)));
 
-        Wallet destination = Wallet.open("Destination");
+        Wallet destination = Wallet.open(destinationUserId);
 
         when(repository.findAllForUpdate(anyList()))
                 .thenReturn(List.of(source, destination));
 
         TransferMoneyRequest request = new TransferMoneyRequest(
-                source.getId().value(),
-                destination.getId().value(),
+                source.userId(),
+                destination.userId(),
                 BigDecimal.valueOf(100)
         );
 

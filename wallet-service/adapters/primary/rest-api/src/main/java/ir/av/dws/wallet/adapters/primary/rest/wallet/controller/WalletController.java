@@ -1,11 +1,11 @@
 package ir.av.dws.wallet.adapters.primary.rest.wallet.controller;
 
+import ir.av.dws.wallet.adapters.primary.rest.base.BaseResponse;
+import ir.av.dws.wallet.adapters.primary.rest.security.SecurityUtils;
 import ir.av.dws.wallet.adapters.primary.rest.wallet.request.CreditWalletRestRequest;
 import ir.av.dws.wallet.adapters.primary.rest.wallet.request.DebitWalletRestRequest;
-import ir.av.dws.wallet.adapters.primary.rest.wallet.request.OpenWalletRestRequest;
 import ir.av.dws.wallet.adapters.primary.rest.wallet.request.TransferWalletRestRequest;
 import ir.av.dws.wallet.adapters.primary.rest.wallet.response.WalletDataRestResponse;
-import ir.av.dws.wallet.adapters.primary.rest.base.BaseResponse;
 import ir.av.dws.wallet.application.delivery.WalletService;
 import ir.av.dws.wallet.application.delivery.dto.WalletDto;
 import jakarta.validation.constraints.NotBlank;
@@ -24,42 +24,43 @@ public class WalletController {
     private final WalletService walletService;
 
     @PostMapping()
-    public ResponseEntity<?> openWallet(@RequestBody OpenWalletRestRequest request) {
-        UUID walletId = walletService.openWallet(request.getName());
+    public ResponseEntity<?> openWallet() {
+        UUID uuid = SecurityUtils.currentUserId();
+        UUID walletId = walletService.openWallet(uuid);
         return ResponseEntity.created(URI.create("/wallets/".concat(walletId.toString()))).build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<WalletDataRestResponse>> get(@PathVariable("id") UUID id) {
-        WalletDto walletDto = walletService.get(id);
+    @GetMapping()
+    public ResponseEntity<BaseResponse<WalletDataRestResponse>> get() {
+        UUID uuid = SecurityUtils.currentUserId();
+        WalletDto walletDto = walletService.get(uuid);
         WalletDataRestResponse response = new WalletDataRestResponse();
-        response.setWalletId(id);
-        response.setName(walletDto.name());
+        response.setWalletId(walletDto.id());
         response.setBalance(walletDto.balance());
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
-    @PostMapping("/{id}/credit")
-    public ResponseEntity<BaseResponse<?>> credit(@PathVariable("id") UUID id,
-                                                  @RequestBody CreditWalletRestRequest request,
+    @PostMapping("/credit")
+    public ResponseEntity<BaseResponse<?>> credit(@RequestBody CreditWalletRestRequest request,
                                                   @NotBlank @RequestHeader("Idempotency-Key") String idempotencyKey) {
-        walletService.credit(id, request.getAmount(), idempotencyKey);
+        UUID uuid = SecurityUtils.currentUserId();
+        walletService.credit(uuid, request.getAmount(), idempotencyKey);
         return ResponseEntity.ok(BaseResponse.defaultSuccess());
     }
 
-    @PostMapping("/{id}/debit")
-    public ResponseEntity<BaseResponse<?>> debit(@PathVariable("id") UUID id,
-                                                 @RequestBody DebitWalletRestRequest request,
+    @PostMapping("/debit")
+    public ResponseEntity<BaseResponse<?>> debit(@RequestBody DebitWalletRestRequest request,
                                                  @NotBlank @RequestHeader("Idempotency-Key") String idempotencyKey) {
-        walletService.debit(id, request.getAmount(), idempotencyKey);
+        UUID uuid = SecurityUtils.currentUserId();
+        walletService.debit(uuid, request.getAmount(), idempotencyKey);
         return ResponseEntity.ok(BaseResponse.defaultSuccess());
     }
 
-    @PostMapping("/{id}/transfer")
-    public ResponseEntity<BaseResponse<?>> transfer(@PathVariable("id") UUID id,
-                                                    @RequestBody TransferWalletRestRequest request,
+    @PostMapping("/transfer")
+    public ResponseEntity<BaseResponse<?>> transfer(@RequestBody TransferWalletRestRequest request,
                                                     @NotBlank @RequestHeader("Idempotency-Key") String idempotencyKey) {
-        walletService.transfer(id, request.getDestinationWalletId(), request.getAmount(), idempotencyKey);
+        UUID uuid = SecurityUtils.currentUserId();
+        walletService.transfer(uuid, request.getDestinationUserId(), request.getAmount(), idempotencyKey);
         return ResponseEntity.ok(BaseResponse.defaultSuccess());
     }
 

@@ -6,18 +6,18 @@ import java.util.UUID;
 
 public interface WalletService {
 
-    UUID openWallet(String name);
+    UUID openWallet(UUID userId);
 
-    void credit(UUID walletId,
+    void credit(UUID userId,
                 long amount,
                 String transactionId);
 
-    void debit(UUID walletId,
+    void debit(UUID userId,
                long amount,
                String transactionId);
 
-    void transfer(UUID sourceWalletId,
-                  UUID destinationWalletId,
+    void transfer(UUID sourceUserId,
+                  UUID destinationUserId,
                   long amount,
                   String transactionId);
 

@@ -15,6 +15,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -34,10 +36,12 @@ class OpenWalletUseCaseTest {
         useCase = new OpenWalletUseCase(repository, eventPublisher);
     }
 
+    private UUID userId = UUID.randomUUID();
+
     @Test
     void shouldOpenWalletSuccessfully() {
         OpenWalletRequest request =
-                new OpenWalletRequest("Ali");
+                new OpenWalletRequest(userId);
 
         UseCaseResult<WalletCreatedResponse> result =
                 useCase.execute(request);
@@ -46,8 +50,8 @@ class OpenWalletUseCaseTest {
         assertNotNull(result.data());
 
         assertEquals(
-                "Ali",
-                result.data().name()
+                userId,
+                result.data().userId()
         );
 
         assertNotNull(
@@ -60,7 +64,7 @@ class OpenWalletUseCaseTest {
     @Test
     void shouldSaveOpenedWallet() {
         OpenWalletRequest request =
-                new OpenWalletRequest("Ali");
+                new OpenWalletRequest(userId);
 
         useCase.execute(request);
 
@@ -75,8 +79,8 @@ class OpenWalletUseCaseTest {
         assertNotNull(savedWallet.getId());
 
         assertEquals(
-                "Ali",
-                savedWallet.name()
+                userId,
+                savedWallet.userId()
         );
 
         assertEquals(
@@ -88,7 +92,7 @@ class OpenWalletUseCaseTest {
     @Test
     void shouldReturnCreatedWalletId() {
         OpenWalletRequest request =
-                new OpenWalletRequest("Ali");
+                new OpenWalletRequest(userId);
 
         UseCaseResult<WalletCreatedResponse> result =
                 useCase.execute(request);
@@ -109,21 +113,21 @@ class OpenWalletUseCaseTest {
     @Test
     void shouldReturnWalletName() {
         OpenWalletRequest request =
-                new OpenWalletRequest("My Wallet");
+                new OpenWalletRequest(userId);
 
         UseCaseResult<WalletCreatedResponse> result =
                 useCase.execute(request);
 
         assertEquals(
-                "My Wallet",
-                result.data().name()
+                userId,
+                result.data().userId()
         );
     }
 
     @Test
     void shouldReturnWalletOpenedEvent() {
         OpenWalletRequest request =
-                new OpenWalletRequest("Ali");
+                new OpenWalletRequest(userId);
 
         UseCaseResult<WalletCreatedResponse> result =
                 useCase.execute(request);
@@ -144,7 +148,7 @@ class OpenWalletUseCaseTest {
     @Test
     void shouldNotReturnNullEvents() {
         OpenWalletRequest request =
-                new OpenWalletRequest("Ali");
+                new OpenWalletRequest(userId);
 
         UseCaseResult<WalletCreatedResponse> result =
                 useCase.execute(request);
@@ -155,7 +159,7 @@ class OpenWalletUseCaseTest {
     @Test
     void shouldSaveOnlyOnce() {
         OpenWalletRequest request =
-                new OpenWalletRequest("Ali");
+                new OpenWalletRequest(userId);
 
         useCase.execute(request);
 

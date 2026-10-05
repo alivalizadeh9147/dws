@@ -1,15 +1,15 @@
 package ir.av.dws.core.application.usecases.wallet;
 
-import ir.av.dws.wallet.core.application.ports.inbound.wallet.CreditMoneyRequest;
 import ir.av.dws.wallet.core.application.ports.inbound.base.UseCaseResult;
+import ir.av.dws.wallet.core.application.ports.inbound.wallet.CreditMoneyRequest;
 import ir.av.dws.wallet.core.application.ports.outbound.eventpublisher.EventPublisher;
 import ir.av.dws.wallet.core.application.ports.outbound.repository.wallet.WalletRepository;
 import ir.av.dws.wallet.core.application.usecases.wallet.CreditMoneyUseCase;
 import ir.av.dws.wallet.core.application.usecases.wallet.exception.WalletNotFoundException;
+import ir.av.dws.wallet.core.domain.shared.vo.Money;
 import ir.av.dws.wallet.core.domain.wallet.entity.Wallet;
 import ir.av.dws.wallet.core.domain.wallet.event.DepositedMoneyEvent;
 import ir.av.dws.wallet.core.domain.wallet.vo.WalletId;
-import ir.av.dws.wallet.core.domain.shared.vo.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +34,8 @@ class CreditMoneyUseCaseTest {
 
     private CreditMoneyUseCase useCase;
 
+    UUID uuid = UUID.randomUUID();
+
     @BeforeEach
     void setUp() {
         useCase = new CreditMoneyUseCase(repository, eventPublisher);
@@ -41,24 +43,22 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldCreditMoneyToWallet() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
         UseCaseResult<Void> result =
                 useCase.execute(request);
 
-        verify(repository).findForUpdate(
-                new WalletId(walletId)
+        verify(repository).findForUpdateByUserId(
+                uuid
         );
 
         verify(repository).updateBalance(
@@ -74,14 +74,12 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenWalletDoesNotExist() {
-        UUID walletId = UUID.randomUUID();
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.empty());
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -90,8 +88,8 @@ class CreditMoneyUseCaseTest {
                 () -> useCase.execute(request)
         );
 
-        verify(repository).findForUpdate(
-                new WalletId(walletId)
+        verify(repository).findForUpdateByUserId(
+                uuid
         );
 
         verify(repository, never()).updateBalance(any());
@@ -99,16 +97,14 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenAmountIsZero() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         BigDecimal.ZERO
                 );
 
@@ -122,16 +118,14 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldThrowWhenAmountIsNegative() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("-100")
                 );
 
@@ -145,16 +139,14 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldNotUpdateRepositoryWhenDomainOperationFails() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         BigDecimal.ZERO
                 );
 
@@ -168,16 +160,14 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldReturnDomainEvents() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -197,16 +187,14 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldUpdateRepositoryWithCreditedWallet() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("250.75")
                 );
 
@@ -224,16 +212,14 @@ class CreditMoneyUseCaseTest {
 
     @Test
     void shouldFindWalletForUpdateBeforeUpdatingBalance() {
-        UUID walletId = UUID.randomUUID();
+        Wallet wallet = Wallet.open(uuid);
 
-        Wallet wallet = Wallet.open("Ali");
-
-        when(repository.findForUpdate(new WalletId(walletId)))
+        when(repository.findForUpdateByUserId(uuid))
                 .thenReturn(Optional.of(wallet));
 
         CreditMoneyRequest request =
                 new CreditMoneyRequest(
-                        walletId,
+                        uuid,
                         new BigDecimal("100")
                 );
 
@@ -242,7 +228,7 @@ class CreditMoneyUseCaseTest {
         var inOrder = inOrder(repository);
 
         inOrder.verify(repository)
-                .findForUpdate(new WalletId(walletId));
+                .findForUpdateByUserId(uuid);
 
         inOrder.verify(repository)
                 .updateBalance(any(Wallet.class));

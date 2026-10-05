@@ -3,19 +3,18 @@ package ir.av.dws.wallet.application.delivery;
 import ir.av.dws.wallet.application.delivery.dto.WalletDto;
 import ir.av.dws.wallet.application.idempotency.IdempotencyService;
 import ir.av.dws.wallet.application.queue.WalletOperationQueue;
+import ir.av.dws.wallet.core.application.ports.inbound.base.UseCaseResult;
 import ir.av.dws.wallet.core.application.ports.inbound.wallet.CreditMoneyRequest;
 import ir.av.dws.wallet.core.application.ports.inbound.wallet.DebitMoneyRequest;
 import ir.av.dws.wallet.core.application.ports.inbound.wallet.OpenWalletRequest;
 import ir.av.dws.wallet.core.application.ports.inbound.wallet.TransferMoneyRequest;
 import ir.av.dws.wallet.core.application.ports.inbound.wallet.response.WalletCreatedResponse;
-import ir.av.dws.wallet.core.application.ports.inbound.base.UseCaseResult;
 import ir.av.dws.wallet.core.application.ports.outbound.repository.wallet.WalletRepository;
 import ir.av.dws.wallet.core.application.usecases.wallet.CreditMoneyUseCase;
 import ir.av.dws.wallet.core.application.usecases.wallet.DebitMoneyUseCase;
 import ir.av.dws.wallet.core.application.usecases.wallet.OpenWalletUseCase;
 import ir.av.dws.wallet.core.application.usecases.wallet.TransferMoneyUseCase;
 import ir.av.dws.wallet.core.application.usecases.wallet.exception.WalletNotFoundException;
-import ir.av.dws.wallet.core.domain.wallet.vo.WalletId;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -53,11 +52,11 @@ public class SimpleWalletService implements WalletService {
     }
 
     @Override
-    public UUID openWallet(String name) {
+    public UUID openWallet(UUID userId) {
 
         UseCaseResult<WalletCreatedResponse> result =
                 openWalletUseCase.execute(
-                        new OpenWalletRequest(name)
+                        new OpenWalletRequest(userId)
                 );
 
         return result.data().walletId();
@@ -65,7 +64,7 @@ public class SimpleWalletService implements WalletService {
 
     @Override
     public void credit(
-            UUID walletId,
+            UUID userId,
             long amount,
             String idempotencyKey
     ) {
@@ -75,7 +74,7 @@ public class SimpleWalletService implements WalletService {
                                     idempotencyKey,
                                     () -> creditMoneyUseCase.execute(
                                             new CreditMoneyRequest(
-                                                    walletId,
+                                                    userId,
                                                     BigDecimal.valueOf(amount)
                                             )
                                     )
@@ -89,7 +88,7 @@ public class SimpleWalletService implements WalletService {
 
     @Override
     public void debit(
-            UUID walletId,
+            UUID userId,
             long amount,
             String idempotencyKey
     ) {
@@ -99,7 +98,7 @@ public class SimpleWalletService implements WalletService {
                             idempotencyKey,
                             () -> debitMoneyUseCase.execute(
                                     new DebitMoneyRequest(
-                                            walletId,
+                                            userId,
                                             BigDecimal.valueOf(amount)
                                     )
                             )
@@ -111,8 +110,8 @@ public class SimpleWalletService implements WalletService {
 
     @Override
     public void transfer(
-            UUID sourceWalletId,
-            UUID destinationWalletId,
+            UUID sourceUserId,
+            UUID destinationUserId,
             long amount,
             String idempotencyKey
     ) {
@@ -123,8 +122,8 @@ public class SimpleWalletService implements WalletService {
                                     idempotencyKey,
                                     () -> transferMoneyUseCase.execute(
                                             new TransferMoneyRequest(
-                                                    sourceWalletId,
-                                                    destinationWalletId,
+                                                    sourceUserId,
+                                                    destinationUserId,
                                                     BigDecimal.valueOf(amount)
                                             )
                                     )
@@ -137,22 +136,21 @@ public class SimpleWalletService implements WalletService {
     }
 
     @Override
-    public WalletDto get(UUID walletId) {
+    public WalletDto get(UUID userId) {
 
-        return walletRepository.findById(
-                        new WalletId(walletId)
+        return walletRepository.findByUserId(
+                        userId
                 )
                 .map(wallet ->
                         new WalletDto(
-                                walletId,
-                                wallet.name(),
+                                wallet.getId().value(),
+                                wallet.userId(),
                                 wallet.balance().amount()
                         )
                 )
                 .orElseThrow(() ->
                         new WalletNotFoundException(
-                                "Wallet with id '%s' not found"
-                                        .formatted(walletId)
+                                "Wallet not found"
                         )
                 );
     }

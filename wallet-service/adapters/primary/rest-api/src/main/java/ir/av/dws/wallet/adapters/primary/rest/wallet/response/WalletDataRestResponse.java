@@ -14,5 +14,4 @@ public class WalletDataRestResponse {
 
     private UUID walletId;
     private BigDecimal balance;
-    private String name;
 }

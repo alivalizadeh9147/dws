@@ -2,6 +2,7 @@ package ir.av.dws.user.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import ir.av.dws.user.entity.User;
 import ir.av.dws.user.security.JwtKeyProvider;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,9 @@ public class JwtService {
         this.keyProvider = keyProvider;
     }
 
-    public String generateToken(String username) {
+    public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getId().toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 100000 * 60 * 60))
                 .signWith(keyProvider.getPrivateKey(), SignatureAlgorithm.RS256)

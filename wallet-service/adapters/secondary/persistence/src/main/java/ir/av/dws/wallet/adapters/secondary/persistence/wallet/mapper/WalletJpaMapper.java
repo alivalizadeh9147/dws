@@ -12,7 +12,7 @@ public class WalletJpaMapper {
         return Wallet.builder()
                 .id(new WalletId(entity.getId()))
                 .balance(new Money(entity.getBalance()))
-                .name(entity.getName())
+                .userId(entity.getUserId())
                 .build();
     }
 
@@ -20,7 +20,7 @@ public class WalletJpaMapper {
         WalletJpaEntity entity = new WalletJpaEntity();
         entity.setId(wallet.getId().value());
         entity.setBalance(wallet.balance().amount());
-        entity.setName(wallet.name());
+        entity.setUserId(wallet.userId());
         return entity;
     }
 }

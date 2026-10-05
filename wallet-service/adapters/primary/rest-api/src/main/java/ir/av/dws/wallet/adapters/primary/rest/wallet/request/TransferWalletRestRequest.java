@@ -14,7 +14,7 @@ import java.util.UUID;
 public class TransferWalletRestRequest {
 
     @NotNull
-    private UUID destinationWalletId;
+    private UUID destinationUserId;
     @Positive
     private long amount;
 }

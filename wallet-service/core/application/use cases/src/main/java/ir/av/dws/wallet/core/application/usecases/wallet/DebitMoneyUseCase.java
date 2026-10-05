@@ -30,12 +30,11 @@ public class DebitMoneyUseCase implements UseCase<DebitMoneyRequest, Void> {
     @Override
     @Transactional
     public UseCaseResult<Void> execute(DebitMoneyRequest request) {
-        Wallet wallet = repository.findForUpdate(
-                new WalletId(request.walletId())
+        Wallet wallet = repository.findForUpdateByUserId(
+                request.userId()
         ).orElseThrow(() ->
                 new WalletNotFoundException(
-                        "Wallet with id '%s' not found"
-                                .formatted(request.walletId())
+                        "Wallet not found"
                 )
         );
 

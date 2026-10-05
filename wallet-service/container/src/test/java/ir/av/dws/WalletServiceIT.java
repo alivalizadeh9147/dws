@@ -81,11 +81,13 @@ class WalletServiceIT {
         repository.deleteAll();
     }
 
+    private UUID userId = UUID.randomUUID();
+
     @Test
     void should_open_wallet() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         assertThat(walletId)
                 .isNotNull();
@@ -96,8 +98,8 @@ class WalletServiceIT {
         assertThat(wallet.id())
                 .isEqualTo(walletId);
 
-        assertThat(wallet.name())
-                .isEqualTo("A");
+        assertThat(wallet.userId())
+                .isEqualTo(userId);
 
         assertThat(wallet.balance())
                 .isEqualByComparingTo("0");
@@ -107,7 +109,7 @@ class WalletServiceIT {
     void should_get_wallet() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         WalletDto wallet =
                 walletService.get(walletId);
@@ -115,8 +117,8 @@ class WalletServiceIT {
         assertThat(wallet.id())
                 .isEqualTo(walletId);
 
-        assertThat(wallet.name())
-                .isEqualTo("A");
+        assertThat(wallet.userId())
+                .isEqualTo(userId);
 
         assertThat(wallet.balance())
                 .isEqualByComparingTo("0");
@@ -126,7 +128,7 @@ class WalletServiceIT {
     void should_credit_wallet() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         String idempotencyKey =
                 UUID.randomUUID().toString();
@@ -148,7 +150,7 @@ class WalletServiceIT {
     void should_debit_wallet() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         walletService.credit(
                 walletId,
@@ -169,14 +171,17 @@ class WalletServiceIT {
                 .isEqualByComparingTo("600");
     }
 
+    private UUID sourceUserId = UUID.randomUUID();
+    private UUID destinationUserId = UUID.randomUUID();
+
     @Test
     void should_transfer_money() {
 
         UUID source =
-                walletService.openWallet("SOURCE");
+                walletService.openWallet(sourceUserId);
 
         UUID destination =
-                walletService.openWallet("DESTINATION");
+                walletService.openWallet(destinationUserId);
 
         walletService.credit(
                 source,
@@ -208,7 +213,7 @@ class WalletServiceIT {
     void should_not_credit_twice_with_same_idempotency_key() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         String key =
                 UUID.randomUUID().toString();
@@ -241,7 +246,7 @@ class WalletServiceIT {
     void should_execute_operations_with_different_idempotency_keys() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         walletService.credit(
                 walletId,
@@ -266,10 +271,10 @@ class WalletServiceIT {
     void should_not_transfer_twice_with_same_idempotency_key() {
 
         UUID source =
-                walletService.openWallet("SOURCE");
+                walletService.openWallet(sourceUserId);
 
         UUID destination =
-                walletService.openWallet("DESTINATION");
+                walletService.openWallet(destinationUserId);
 
         walletService.credit(
                 source,
@@ -316,7 +321,7 @@ class WalletServiceIT {
     void should_reject_debit_when_balance_is_insufficient() {
 
         UUID walletId =
-                walletService.openWallet("A");
+                walletService.openWallet(userId);
 
         walletService.credit(
                 walletId,
@@ -346,10 +351,10 @@ class WalletServiceIT {
     void should_not_change_balances_when_transfer_fails() {
 
         UUID source =
-                walletService.openWallet("SOURCE");
+                walletService.openWallet(sourceUserId);
 
         UUID destination =
-                walletService.openWallet("DESTINATION");
+                walletService.openWallet(destinationUserId);
 
         walletService.credit(
                 source,

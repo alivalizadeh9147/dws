@@ -11,7 +11,6 @@ import ir.av.dws.wallet.core.domain.shared.vo.Money;
 import ir.av.dws.wallet.core.domain.wallet.entity.Wallet;
 import ir.av.dws.wallet.core.domain.wallet.event.TransferredMoneyEvent;
 import ir.av.dws.wallet.core.domain.wallet.exception.InvalidWalletOperationException;
-import ir.av.dws.wallet.core.domain.wallet.vo.WalletId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,13 +35,7 @@ public class TransferMoneyUseCase implements UseCase<TransferMoneyRequest, Void>
     @Override
     @Transactional
     public UseCaseResult<Void> execute(TransferMoneyRequest request) {
-        WalletId sourceId =
-                new WalletId(request.sourceWalletId());
-
-        WalletId destinationId =
-                new WalletId(request.destinationWalletId());
-
-        if (sourceId.equals(destinationId)) {
+        if (request.sourceUserId().equals(request.destinationUserId())) {
             throw new InvalidWalletOperationException(
                     "Source and destination wallets must be different"
             );
@@ -50,34 +43,32 @@ public class TransferMoneyUseCase implements UseCase<TransferMoneyRequest, Void>
 
         Money amount = Money.of(request.amount());
 
-        List<WalletId> lockOrder = Stream
-                .of(sourceId, destinationId)
-                .sorted(Comparator.comparing(WalletId::value))
+        List<UUID> lockOrder = Stream
+                .of(request.sourceUserId(), request.destinationUserId())
+                .sorted(Comparator.naturalOrder())
                 .toList();
 
-        Map<WalletId, Wallet> wallets =
+        Map<UUID, Wallet> wallets =
                 repository.findAllForUpdate(lockOrder)
                         .stream()
                         .collect(Collectors.toMap(
-                                Wallet::getId,
+                                Wallet::userId,
                                 Function.identity()
                         ));
 
         Wallet source = Optional
-                .ofNullable(wallets.get(sourceId))
+                .ofNullable(wallets.get(request.sourceUserId()))
                 .orElseThrow(() ->
                         new WalletNotFoundException(
-                                "Source wallet with id '%s' not found"
-                                        .formatted(sourceId.value())
+                                "Source wallet not found"
                         )
                 );
 
         Wallet destination = Optional
-                .ofNullable(wallets.get(destinationId))
+                .ofNullable(wallets.get(request.destinationUserId()))
                 .orElseThrow(() ->
                         new WalletNotFoundException(
-                                "Destination wallet with id '%s' not found"
-                                        .formatted(destinationId.value())
+                                "Destination not found"
                         )
                 );
 
@@ -90,7 +81,7 @@ public class TransferMoneyUseCase implements UseCase<TransferMoneyRequest, Void>
 
         List<DomainEvent<?>> events = new ArrayList<>();
         TransferredMoneyEvent.Payload payload = new TransferredMoneyEvent.Payload(
-                sourceId.value(), source.name(), destinationId.value(), destination.name(), amount.amount().toPlainString()
+                source.getId().value(), source.userId(), destination.getId().value(), destination.userId(), amount.amount().toPlainString()
         );
         TransferredMoneyEvent debitMoneyEvent = new TransferredMoneyEvent(
                 UUID.randomUUID(), Instant.now(), payload);

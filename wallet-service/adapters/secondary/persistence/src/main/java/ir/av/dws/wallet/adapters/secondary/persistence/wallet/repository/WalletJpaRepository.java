@@ -32,11 +32,11 @@ public interface WalletJpaRepository extends JpaRepository<WalletJpaEntity, UUID
     @Query("""
         select a
         from WalletJpaEntity a
-        where a.id in :ids
+        where a.userId in :userIds
         order by a.id
     """)
-    List<WalletJpaEntity> findAllByIdForUpdate(
-            @Param("ids") Collection<UUID> ids
+    List<WalletJpaEntity> findAllByUserIdForUpdate(
+            @Param("userIds") Collection<UUID> ids
     );
 
     @Modifying
@@ -50,4 +50,14 @@ public interface WalletJpaRepository extends JpaRepository<WalletJpaEntity, UUID
             @Param("id") UUID id,
             @Param("balance") BigDecimal balance
     );
+
+    Optional<WalletJpaEntity> findByUserId(UUID userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select a
+        from WalletJpaEntity a
+        where a.userId = :userId
+    """)
+    Optional<WalletJpaEntity> findForUpdateByUserId(@Param("userId") UUID userId);
 }

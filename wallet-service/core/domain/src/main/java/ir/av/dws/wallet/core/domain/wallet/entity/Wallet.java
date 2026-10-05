@@ -10,30 +10,31 @@ import ir.av.dws.wallet.core.domain.wallet.exception.InvalidWalletOperationExcep
 import ir.av.dws.wallet.core.domain.wallet.vo.WalletId;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
+
+import static java.util.Objects.requireNonNull;
 
 public final class Wallet extends AggregateRoot<WalletId> {
 
     private final Money balance;
-    private final String name;
+    private final UUID userId;
 
     private Wallet(
             WalletId walletId,
             Money balance,
-            String name
+            UUID userId
     ) {
         super(walletId);
 
-        this.balance = Objects.requireNonNull(
+        this.balance = requireNonNull(
                 balance,
                 "Balance must not be null"
         );
-        this.name = requireValidName(name);
+        this.userId = requireNonNull(userId);
     }
 
     private static String requireValidName(String name) {
-        Objects.requireNonNull(name, "Name must not be null");
+        requireNonNull(name, "Name must not be null");
 
         if (name.isBlank()) {
             throw new InvalidWalletOperationException(
@@ -45,12 +46,12 @@ public final class Wallet extends AggregateRoot<WalletId> {
     }
 
     public static Wallet open(
-            String name
+            UUID userId
     ) {
         Wallet wallet = new Wallet(
                 WalletId.open(),
                 Money.zero(),
-                name
+                userId
         );
         WalletOpenedEvent.Payload payload = new WalletOpenedEvent.Payload();
         WalletOpenedEvent walletOpenedEvent = new WalletOpenedEvent(
@@ -68,7 +69,7 @@ public final class Wallet extends AggregateRoot<WalletId> {
                 .balance(add)
                 .build();
         DepositedMoneyEvent.Payload payload = new DepositedMoneyEvent.Payload(
-                getId().value(), name, amount.amount().toPlainString()
+                getId().value(), userId, amount.amount().toPlainString()
         );
         DepositedMoneyEvent depositedMoneyEvent = new DepositedMoneyEvent(
                 UUID.randomUUID(), Instant.now(), payload);
@@ -90,7 +91,7 @@ public final class Wallet extends AggregateRoot<WalletId> {
                 .build();
 
         DebitMoneyEvent.Payload payload = new DebitMoneyEvent.Payload(
-                getId().value(), name, amount.amount().toPlainString()
+                getId().value(), userId, amount.amount().toPlainString()
         );
         DebitMoneyEvent debitMoneyEvent = new DebitMoneyEvent(
                 UUID.randomUUID(), Instant.now(), payload);
@@ -102,12 +103,12 @@ public final class Wallet extends AggregateRoot<WalletId> {
         return balance;
     }
 
-    public String name() {
-        return name;
+    public UUID userId() {
+        return userId;
     }
 
     private static void requirePositiveAmount(Money amount) {
-        Objects.requireNonNull(
+        requireNonNull(
                 amount,
                 "Amount must not be null"
         );
@@ -127,7 +128,7 @@ public final class Wallet extends AggregateRoot<WalletId> {
 
         private WalletId id;
         private Money balance;
-        private String name;
+        private UUID userId;
 
         private Builder() {
         }
@@ -142,8 +143,8 @@ public final class Wallet extends AggregateRoot<WalletId> {
             return this;
         }
 
-        public Builder name(String name) {
-            this.name = name;
+        public Builder userId(UUID userId) {
+            this.userId = userId;
             return this;
         }
 
@@ -151,7 +152,7 @@ public final class Wallet extends AggregateRoot<WalletId> {
             return new Wallet(
                     id,
                     balance,
-                    name
+                    userId
             );
         }
     }
@@ -160,7 +161,7 @@ public final class Wallet extends AggregateRoot<WalletId> {
         return new Builder()
                 .id(getId())
                 .balance(balance)
-                .name(name)
+                .userId(userId)
                 ;
     }
 
@@ -168,7 +169,7 @@ public final class Wallet extends AggregateRoot<WalletId> {
     public String toString() {
         return "Wallet{" +
                 "balance=" + balance +
-                ", name='" + name + '\'' +
+                ", userId='" + userId + '\'' +
                 '}';
     }
 }
