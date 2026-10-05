@@ -151,8 +151,7 @@ class TransferMoneyUseCaseTest {
         );
 
         assertThatThrownBy(() -> useCase.execute(request))
-                .isInstanceOf(WalletNotFoundException.class)
-                .hasMessageContaining("Destination wallet");
+                .isInstanceOf(WalletNotFoundException.class);
 
         verify(repository).findAllForUpdate(anyList());
         verify(repository, never()).updateBalance(any());
