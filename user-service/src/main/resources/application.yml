@@ -1,0 +1,29 @@
+jwt:
+  secret: "7f4c9e2a6b1d8f3c5a7e9b2d4c6f8a1e3b5d7c9f2a4e6b8d1c3f5a7e9b2d4c6"
+  expiration-ms: 3600000
+server:
+  port: 8082
+
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user_service_db
+    username: user-service-user
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+security:
+  jwt:
+    issuer: http://localhost:8082
+    expiration: 3600

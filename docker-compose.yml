@@ -1,0 +1,91 @@
+services:
+
+  rabbitmq:
+    image: rabbitmq:4-management
+
+    container_name: dws-rabbitmq
+    restart: unless-stopped
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    networks:
+      - shared-network
+
+
+  redis:
+    image: redis:7-alpine
+
+    container_name: dws-redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    command: redis-server --appendonly yes
+
+    networks:
+      - shared-network
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+
+    container_name: microservice_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - microservice_postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - shared-network
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d postgres"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+volumes:
+  rabbitmq_data:
+    name: dws_rabbitmq_data
+
+  redis_data:
+    name: dws_redis_data
+
+  microservice_postgres_data:
+    name: dws_postgres_data
+
+
+networks:
+  shared-network:
+    external: true

@@ -1,0 +1,28 @@
+services:
+
+  app:
+    build:
+      dockerfile: Dockerfile
+
+    container_name: wallet-app
+    restart: unless-stopped
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+
+      DDL_AUTO: update
+
+    networks:
+      - shared-network
+
+
+networks:
+  shared-network:
+    external: true

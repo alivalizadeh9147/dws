@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: wallet-service
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: admin
+    password: admin
+
+    publisher-confirm-type: correlated
+    publisher-returns: true
+
+    template:
+      mandatory: true
+
+  datasource:
+    url: jdbc:postgresql://microservice_postgres:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: WalletHikariPool
+      maximum-pool-size: 30
+      minimum-idle: 10
+      connection-timeout: 3000
+      validation-timeout: 1000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  tomcat:
+    max-connections: 20000
+    accept-count: 10000
+  port: 8081
