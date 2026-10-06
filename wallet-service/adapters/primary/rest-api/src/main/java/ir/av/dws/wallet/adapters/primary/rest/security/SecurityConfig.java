@@ -37,7 +37,7 @@ public class SecurityConfig {
 
         return NimbusJwtDecoder
                 .withJwkSetUri(
-                        "http://localhost:8082/.well-known/jwks.json"
+                        "http://user-app:8082/.well-known/jwks.json"
                 )
                 .build();
     }

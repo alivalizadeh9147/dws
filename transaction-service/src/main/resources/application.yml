@@ -2,7 +2,7 @@ spring:
   application:
     name: transaction-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://microservice_postgres:5432/postgres
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -11,7 +11,7 @@ spring:
     hibernate:
       ddl-auto: update
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: admin
     password: admin

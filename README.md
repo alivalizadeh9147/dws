@@ -35,7 +35,7 @@ docker network create shared-network
 docker compose up -d
 در این مرحله دیتابیس، rabbitmq و redis به صورت داکرایز بالا خواهند امد
 
-3) mvn clean package -Drevision=1.0.0
+3) mvn clean package -Drevision=1.0.0 -DskipTests
 در این مرحله تمامی unit tests, integration test اجرا خواهند شد و سپس jar فایل ساخته خواهد شد
 
 4) cd wallet-service

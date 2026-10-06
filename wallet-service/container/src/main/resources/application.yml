@@ -1,9 +1,14 @@
 spring:
   application:
     name: wallet-service
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 2s
 
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: admin
     password: admin
@@ -15,7 +20,7 @@ spring:
       mandatory: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://microservice_postgres:5432/postgres
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -23,7 +28,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8082/.well-known/jwks.json
+          jwk-set-uri: http://user-app:8082/.well-known/jwks.json
     hikari:
       pool-name: WalletHikariPool
       maximum-pool-size: 30

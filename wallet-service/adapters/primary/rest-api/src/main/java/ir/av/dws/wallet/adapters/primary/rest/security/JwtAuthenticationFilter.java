@@ -55,6 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
+            System.out.println(e.getMessage());
 
             SecurityContextHolder.clearContext();
 
